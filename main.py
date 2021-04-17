@@ -6,6 +6,7 @@ from torch import nn
 from torch import optim
 from torch.utils.data import DataLoader, TensorDataset
 import torch.nn.functional as f
+from nltk import tokenize
 
 
 # Define recurrent neural network model
@@ -15,7 +16,7 @@ class RNNModel(nn.Module):
         super(RNNModel, self).__init__()
         self.hidden_size = hidden_size
         self.num_layers = num_layers
-        # Default batch index is 1 and not 0.
+        # Default batch index is 1 and not 0
         # batch_first = true -> (batch, sequence, word)
         self.rnn = nn.RNN(input_size, hidden_size, num_layers, batch_first=True)
         # This is to make sure that our output dimension is correct
@@ -37,12 +38,22 @@ class RNNModel(nn.Module):
 
 
 # Initialize variables
-train_data = []
-test_data = []
-class_label_index = 0
+input_sequence = []
+target_sequence = []
 
 # Read data
+file = open("tiny-shakespeare.txt", "r").read()
+
+# Set up vocabulary
+characters = list(set(file))
+intChar = dict(enumerate(characters))
+charInt = {character: index for index, character in intChar.items()}
+vocab_size = len(charInt)
+
 # Split corpus into segments
+# Reference: https://stackoverflow.com/a/9474645/2877052
+sentences = tokenize.sent_tokenize(file)
+print(sentences)
 # Convert every character in vocabulary into one-hot vector
 
 # Set up training and test sets
