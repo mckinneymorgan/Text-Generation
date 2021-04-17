@@ -37,6 +37,7 @@ class RNNModel(nn.Module):
         return hidden
 
 
+# Create one-hot vector
 def create_one_hot(sequence, v_size):
     # Define a matrix of size vocab_size containing all 0's
     # Dimensions: Batch Size x Sequence Length x Vocab Size
@@ -70,4 +71,21 @@ for i in range(len(sentences)):
     input_sequence[i] = [charInt[character] for character in input_sequence[i]]
     target_sequence[i] = [charInt[character] for character in target_sequence[i]]
 
-# Set up training and test sets
+# Set up model, loss, and optimizers
+model = RNNModel(vocab_size, vocab_size, 100, 1)
+loss = nn.CrossEntropyLoss()
+optimizer = torch.optim.Adam(model.parameters())
+
+# Train
+for epoch in range(10):
+    for i in range(len(input_sequence)):
+        optimizer.zero_grad()
+        # Create input as a tensor
+        x = torch.from_numpy(create_one_hot(input_sequence[i], vocab_size))
+        # Create target; cross entropy loss uses integer thus no need for one-hots
+        y = torch.Tensor(target_sequence[i])
+        output, hidden = model(x)
+        lossValue = loss(output, y.view(-1).long())
+        lossValue.backward()
+        optimizer.step()
+        print("Loss: {:.4f}".format(lossValue.item()))
