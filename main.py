@@ -48,6 +48,28 @@ def create_one_hot(sequence, v_size):
     return encoding  # Return one-hot sequence
 
 
+def predict(model, character):
+    characterInput = np.array([charInt[c] for c in character])
+    characterInput = create_one_hot(characterInput, vocab_size)
+    characterInput = torch.from_numpy(characterInput)
+    out, hidden = model(characterInput)
+
+    prob = nn.functional.softmax(out[-1], dim=0).data
+    character_index = torch.max(prob, dim=0)[1].item()
+
+    return intChar[character_index], hidden
+
+
+def sample(model, out_len, start='The'):
+    characters = [ch for ch in start]
+    currentSize = out_len - len(characters)
+    for i in range(currentSize):
+        character, hidden_state = predict(model, characters)
+        characters.append(character)
+
+    return ''.join(characters)
+
+
 # Initialize variables
 input_sequence = []
 target_sequence = []
@@ -78,6 +100,7 @@ optimizer = torch.optim.Adam(model.parameters())
 
 # Train
 for epoch in range(10):
+    print(epoch)
     for i in range(len(input_sequence)):
         optimizer.zero_grad()
         # Create input as a tensor
@@ -88,4 +111,7 @@ for epoch in range(10):
         lossValue = loss(output, y.view(-1).long())
         lossValue.backward()
         optimizer.step()
-        print("Loss: {:.4f}".format(lossValue.item()))
+        # print("Loss: {:.4f}".format(lossValue.item()))
+
+# Output
+print(sample(model, 100))
