@@ -37,23 +37,37 @@ class RNNModel(nn.Module):
         return hidden
 
 
+def create_one_hot(sequence, v_size):
+    # Define a matrix of size vocab_size containing all 0's
+    # Dimensions: Batch Size x Sequence Length x Vocab Size
+    # Have to do this even if your batch size is 1
+    encoding = np.zeros((1, len(sequence), v_size), dtype=np.float32)
+    for i in range(len(sequence)):
+        encoding[0, i, sequence[i]] = 1
+    return encoding  # Return one-hot sequence
+
+
 # Initialize variables
 input_sequence = []
 target_sequence = []
 
 # Read data
 file = open("tiny-shakespeare.txt", "r").read()
-
 # Set up vocabulary
 characters = list(set(file))
 intChar = dict(enumerate(characters))
 charInt = {character: index for index, character in intChar.items()}
 vocab_size = len(charInt)
-
 # Split corpus into segments
-# Reference: https://stackoverflow.com/a/9474645/2877052
 sentences = tokenize.sent_tokenize(file)
-print(sentences)
-# Convert every character in vocabulary into one-hot vector
+
+# Set up input and target sequences
+for i in range(len(sentences)):
+    input_sequence.append(sentences[i][:-1])
+    target_sequence.append(sentences[i][1:])
+# Replace characters with integer values
+for i in range(len(sentences)):
+    input_sequence[i] = [charInt[character] for character in input_sequence[i]]
+    target_sequence[i] = [charInt[character] for character in target_sequence[i]]
 
 # Set up training and test sets
