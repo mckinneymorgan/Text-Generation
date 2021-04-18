@@ -60,7 +60,7 @@ def predict(model, character):
     return intChar[character_index], hidden
 
 
-def sample(model, out_len, start='The'):
+def sample(model, out_len, start='QUEEN'):
     characters = [ch for ch in start]
     currentSize = out_len - len(characters)
     for i in range(currentSize):
@@ -73,6 +73,7 @@ def sample(model, out_len, start='The'):
 # Initialize variables
 input_sequence = []
 target_sequence = []
+sentences = []
 
 # Read data
 file = open("tiny-shakespeare.txt", "r").read()
@@ -82,7 +83,14 @@ intChar = dict(enumerate(characters))
 charInt = {character: index for index, character in intChar.items()}
 vocab_size = len(charInt)
 # Split corpus into segments
-sentences = tokenize.sent_tokenize(file)
+segments = tokenize.sent_tokenize(file)
+new_segment = ""
+# Combine every 10 segments
+for i in range(len(segments)):
+    new_segment += segments[i]
+    if i % 10 == 9:
+        sentences.append(new_segment)
+        new_segment = ""
 
 # Set up input and target sequences
 for i in range(len(sentences)):
@@ -99,7 +107,7 @@ loss = nn.CrossEntropyLoss()
 optimizer = torch.optim.Adam(model.parameters())
 
 # Train
-for epoch in range(10):
+for epoch in range(5):
     print(epoch)
     for i in range(len(input_sequence)):
         optimizer.zero_grad()
@@ -111,7 +119,8 @@ for epoch in range(10):
         lossValue = loss(output, y.view(-1).long())
         lossValue.backward()
         optimizer.step()
-        # print("Loss: {:.4f}".format(lossValue.item()))
+        if i % 50 == 0:
+            print("Loss: {:.4f}".format(lossValue.item()))
 
 # Output
 print(sample(model, 100))
