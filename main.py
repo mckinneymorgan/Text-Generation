@@ -48,6 +48,7 @@ def create_one_hot(sequence, v_size):
     return encoding  # Return one-hot sequence
 
 
+# Prediction
 def predict(model, character):
     characterInput = np.array([charInt[c] for c in character])
     characterInput = create_one_hot(characterInput, vocab_size)
@@ -60,6 +61,7 @@ def predict(model, character):
     return intChar[character_index], hidden
 
 
+# Sample
 def sample(model, out_len, start='QUEEN'):
     characters = [ch for ch in start]
     currentSize = out_len - len(characters)
