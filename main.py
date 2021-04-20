@@ -62,7 +62,7 @@ def predict(model, character):
 
 
 # Sample
-def sample(model, out_len, start='QUEEN'):
+def sample(model, out_len, start='QUEEN:'):
     characters = [ch for ch in start]
     currentSize = out_len - len(characters)
     for i in range(currentSize):
@@ -104,13 +104,13 @@ for i in range(len(sentences)):
     target_sequence[i] = [charInt[character] for character in target_sequence[i]]
 
 # Set up model, loss, and optimizers
-model = RNNModel(vocab_size, vocab_size, 100, 1)
+model = RNNModel(vocab_size, vocab_size, 100, 2)
 loss = nn.CrossEntropyLoss()
 optimizer = torch.optim.Adam(model.parameters())
 
 # Train
-for epoch in range(5):
-    print(epoch)
+for epoch in range(1):
+    print("Epoch:", epoch)
     for i in range(len(input_sequence)):
         optimizer.zero_grad()
         # Create input as a tensor
@@ -121,8 +121,8 @@ for epoch in range(5):
         lossValue = loss(output, y.view(-1).long())
         lossValue.backward()
         optimizer.step()
-        if i % 50 == 0:
+        if i % 150 == 0:
             print("Loss: {:.4f}".format(lossValue.item()))
 
 # Output
-print(sample(model, 100))
+print(sample(model, 50))
