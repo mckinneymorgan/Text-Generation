@@ -84,7 +84,14 @@ intChar = dict(enumerate(characters))
 charInt = {character: index for index, character in intChar.items()}
 vocab_size = len(charInt)
 # Split corpus into segments
-segments = [file[pos:pos+2] for pos, i in enumerate(list(file)) if pos%2 == 0]
+segments = [file[pos:pos+42] for pos, i in enumerate(list(file)) if pos % 42 == 0]
+# Combine every 4 segments
+new_segment = ""
+for i in range(len(segments)):
+    new_segment += segments[i]
+    if i % 4 == 3:
+        sentences.append(new_segment)
+        new_segment = ""
 
 # Set up input and target sequences
 for i in range(len(sentences)):
