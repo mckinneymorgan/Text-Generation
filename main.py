@@ -3,10 +3,9 @@
 import numpy as np
 import torch
 from torch import nn
-from torch import optim
-from torch.utils.data import DataLoader, TensorDataset
+# from torch import optim
+# from torch.utils.data import DataLoader, TensorDataset
 import torch.nn.functional as f
-from nltk import tokenize
 
 
 # Define recurrent neural network model
@@ -85,14 +84,7 @@ intChar = dict(enumerate(characters))
 charInt = {character: index for index, character in intChar.items()}
 vocab_size = len(charInt)
 # Split corpus into segments
-segments = tokenize.sent_tokenize(file)
-new_segment = ""
-# Combine every 10 segments
-for i in range(len(segments)):
-    new_segment += segments[i]
-    if i % 10 == 9:
-        sentences.append(new_segment)
-        new_segment = ""
+segments = [file[pos:pos+2] for pos, i in enumerate(list(file)) if pos%2 == 0]
 
 # Set up input and target sequences
 for i in range(len(sentences)):
