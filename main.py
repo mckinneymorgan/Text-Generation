@@ -3,9 +3,8 @@
 import numpy as np
 import torch
 from torch import nn
-# from torch import optim
-# from torch.utils.data import DataLoader, TensorDataset
 import torch.nn.functional as f
+from torch.utils.data import TensorDataset, DataLoader
 
 
 # Define recurrent neural network model
@@ -23,17 +22,17 @@ class RNNModel(nn.Module):
 
     # Define how inputs translate into outputs
     def forward(self, x):
-        hidden_state = self.init_hidden()
-        output, hidden_state = self.rnn(x, hidden_state)
+        # hidden_state = self.init_hidden()
+        output, hidden_state = self.rnn(x)
         # Use this to deal with the extra dimension from having a batch
         output = output.contiguous().view(-1, self.hidden_size)
         output = self.fc(output)
         return output, hidden_state
 
-    def init_hidden(self):
+    # def init_hidden(self):
         # Remember, (row, BATCH, column)
-        hidden = torch.zeros(self.num_layers, 1, self.hidden_size)
-        return hidden
+        # hidden = torch.zeros(self.num_layers, 1, self.hidden_size)
+        # return hidden
 
 
 # Create one-hot vector
@@ -51,7 +50,7 @@ def create_one_hot(sequence, v_size):
 def predict(model, character):
     characterInput = np.array([charInt[c] for c in character])
     characterInput = create_one_hot(characterInput, vocab_size)
-    characterInput = torch.from_numpy(characterInput)
+    characterInput = torch.from_numpy(characterInput).cuda()
     out, hidden = model(characterInput)
 
     prob = nn.functional.softmax(out[-1], dim=0).data
@@ -75,6 +74,10 @@ def sample(model, out_len, start='QUEEN:'):
 input_sequence = []
 target_sequence = []
 sentences = []
+# Hyperparamters
+epochs = 1
+print_frequency = 1000  # Loss print frequency
+batch = 2
 
 # Read data
 file = open("tiny-shakespeare.txt", "r").read()
@@ -85,14 +88,13 @@ charInt = {character: index for index, character in intChar.items()}
 vocab_size = len(charInt)
 # Split corpus into segments
 segments = [file[pos:pos+42] for pos, i in enumerate(list(file)) if pos % 42 == 0]
-# Combine every 4 segments
+# Combine every 4 segments, of length 42, into length 168
 new_segment = ""
 for i in range(len(segments)):
     new_segment += segments[i]
     if i % 4 == 3:
         sentences.append(new_segment)
         new_segment = ""
-
 # Set up input and target sequences
 for i in range(len(sentences)):
     input_sequence.append(sentences[i][:-1])
@@ -102,25 +104,35 @@ for i in range(len(sentences)):
     input_sequence[i] = [charInt[character] for character in input_sequence[i]]
     target_sequence[i] = [charInt[character] for character in target_sequence[i]]
 
+# Batch data
+training = TensorDataset(torch.FloatTensor(input_sequence), torch.FloatTensor(target_sequence))
+trainLoader = DataLoader(training, batch_size=batch)  # Shuffle?
+
 # Set up model, loss, and optimizers
-model = RNNModel(vocab_size, vocab_size, 100, 2)
+model = RNNModel(vocab_size, vocab_size, 300, 2)
 loss = nn.CrossEntropyLoss()
 optimizer = torch.optim.Adam(model.parameters())
 
 # Train
-for epoch in range(1):
+model.cuda()
+print(next(model.parameters()).is_cuda)
+for epoch in range(epochs):
     print("Epoch:", epoch)
+    # for x, y in trainLoader:
     for i in range(len(input_sequence)):
         optimizer.zero_grad()
         # Create input as a tensor
-        x = torch.from_numpy(create_one_hot(input_sequence[i], vocab_size))
+        input_tensor = torch.from_numpy(create_one_hot(input_sequence[i], vocab_size))  # We don't need this once fixed
         # Create target; cross entropy loss uses integer thus no need for one-hots
-        y = torch.Tensor(target_sequence[i])
-        output, hidden = model(x)
-        lossValue = loss(output, y.view(-1).long())
+        target_tensor = torch.Tensor(target_sequence[i])
+        # Train using GPU
+        input_tensor = input_tensor.cuda()
+        target_tensor = target_tensor.cuda()
+        output, hidden = model(input_tensor)
+        lossValue = loss(output, target_tensor.view(-1).long())
         lossValue.backward()
         optimizer.step()
-        if i % 150 == 0:
+        if i % print_frequency == 0:
             print("Loss: {:.4f}".format(lossValue.item()))
 
 # Output
