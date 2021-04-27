@@ -48,10 +48,10 @@ def create_one_hot(sequence, v_size):
 
 # Prediction
 def predict(model, character):
-    characterInput = np.array([charInt[c] for c in character])
-    characterInput = create_one_hot(characterInput, vocab_size)
-    characterInput = torch.from_numpy(characterInput).cuda()
-    out, hidden = model(characterInput)
+    character_input = np.array([charInt[c] for c in character])
+    character_input = create_one_hot(character_input, vocab_size)
+    character_input = torch.from_numpy(character_input).cuda()
+    out, hidden = model(character_input)
 
     prob = nn.functional.softmax(out[-1], dim=0).data
     character_index = torch.max(prob, dim=0)[1].item()
@@ -62,8 +62,8 @@ def predict(model, character):
 # Sample
 def sample(model, out_len, start='QUEEN:'):
     characters = [ch for ch in start]
-    currentSize = out_len - len(characters)
-    for i in range(currentSize):
+    current_size = out_len - len(characters)
+    for i in range(current_size):
         character, hidden_state = predict(model, characters)
         characters.append(character)
 
