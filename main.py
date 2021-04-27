@@ -77,7 +77,7 @@ sentences = []
 # Hyperparamters
 epochs = 1
 print_frequency = 1000  # Loss print frequency
-batch = 2
+batch = 64
 
 # Read data
 file = open("tiny-shakespeare.txt", "r").read()
@@ -103,10 +103,15 @@ for i in range(len(sentences)):
 for i in range(len(sentences)):
     input_sequence[i] = [charInt[character] for character in input_sequence[i]]
     target_sequence[i] = [charInt[character] for character in target_sequence[i]]
+# Transform input sequences into one-hots
+for i in range(len(input_sequence)):
+    input_sequence[i] = create_one_hot(input_sequence[i], vocab_size)
 
 # Batch data
-training = TensorDataset(torch.FloatTensor(input_sequence), torch.FloatTensor(target_sequence))
-trainLoader = DataLoader(training, batch_size=batch)  # Shuffle?
+input_tensor = torch.FloatTensor(input_sequence)
+input_tensor = torch.reshape(input_tensor, (len(input_tensor), len(sentences[0])-1, vocab_size))
+training = TensorDataset(input_tensor, torch.FloatTensor(target_sequence))
+trainLoader = DataLoader(training, batch_size=batch)
 
 # Set up model, loss, and optimizers
 model = RNNModel(vocab_size, vocab_size, 300, 2)
@@ -115,25 +120,21 @@ optimizer = torch.optim.Adam(model.parameters())
 
 # Train
 model.cuda()
-print(next(model.parameters()).is_cuda)
 for epoch in range(epochs):
     print("Epoch:", epoch)
-    # for x, y in trainLoader:
-    for i in range(len(input_sequence)):
+    count = 0
+    for x, y in trainLoader:
         optimizer.zero_grad()
-        # Create input as a tensor
-        input_tensor = torch.from_numpy(create_one_hot(input_sequence[i], vocab_size))  # We don't need this once fixed
-        # Create target; cross entropy loss uses integer thus no need for one-hots
-        target_tensor = torch.Tensor(target_sequence[i])
         # Train using GPU
-        input_tensor = input_tensor.cuda()
-        target_tensor = target_tensor.cuda()
-        output, hidden = model(input_tensor)
-        lossValue = loss(output, target_tensor.view(-1).long())
+        x = x.cuda()
+        y = y.cuda()
+        output, hidden = model(x)
+        lossValue = loss(output, y.view(-1).long())
         lossValue.backward()
         optimizer.step()
-        if i % print_frequency == 0:
+        if count % print_frequency == 0:
             print("Loss: {:.4f}".format(lossValue.item()))
+        count += 1
 
 # Output
 print(sample(model, 50))
