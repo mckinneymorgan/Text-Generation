@@ -75,9 +75,9 @@ input_sequence = []
 target_sequence = []
 sentences = []
 # Hyperparamters
-epochs = 1
-print_frequency = 1000  # Loss print frequency
-batch = 64
+epochs = 75
+print_frequency = 250  # Loss print frequency
+batch = 128
 
 # Read data
 file = open("tiny-shakespeare.txt", "r").read()
@@ -114,7 +114,7 @@ training = TensorDataset(input_tensor, torch.FloatTensor(target_sequence))
 trainLoader = DataLoader(training, batch_size=batch)
 
 # Set up model, loss, and optimizers
-model = RNNModel(vocab_size, vocab_size, 300, 2)
+model = RNNModel(vocab_size, vocab_size, 1000, 2)
 loss = nn.CrossEntropyLoss()
 optimizer = torch.optim.Adam(model.parameters())
 
@@ -137,4 +137,4 @@ for epoch in range(epochs):
         count += 1
 
 # Output
-print(sample(model, 50))
+print(sample(model, 200))
