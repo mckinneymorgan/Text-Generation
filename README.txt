@@ -2,7 +2,7 @@ README for Text Generation
 
 Original author: Morgan McKinney 4/2021
 
-Machine learning generation of Shakespearean text using a recurrent neural network. Reads in original Shakespeare text and outputs uniquely generated Shakespearean text.
+Machine learning generation of Shakespearean text using a recurrent neural network. The network model is created with the help of PyTorch. Reads in original Shakespeare text and outputs uniquely generated Shakespearean text.
 
 Network trains using included Shakespeare text dataset. There is no need for user input to run. The network will output loss at given intervals to illustrate how well it is learning throughout runtime.
 
