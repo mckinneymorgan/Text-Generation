@@ -29,11 +29,6 @@ class RNNModel(nn.Module):
         output = self.fc(output)
         return output, hidden_state
 
-    # def init_hidden(self):
-        # Remember, (row, BATCH, column)
-        # hidden = torch.zeros(self.num_layers, 1, self.hidden_size)
-        # return hidden
-
 
 # Create one-hot vector
 def create_one_hot(sequence, v_size):
@@ -75,9 +70,9 @@ input_sequence = []
 target_sequence = []
 sentences = []
 # Hyperparamters
-epochs = 75
-print_frequency = 250  # Loss print frequency
-batch = 128
+epochs = 50
+print_frequency = 50  # Loss print frequency
+batch = 64
 
 # Read data
 file = open("tiny-shakespeare.txt", "r").read()
@@ -114,7 +109,7 @@ training = TensorDataset(input_tensor, torch.FloatTensor(target_sequence))
 trainLoader = DataLoader(training, batch_size=batch)
 
 # Set up model, loss, and optimizers
-model = RNNModel(vocab_size, vocab_size, 1000, 2)
+model = RNNModel(vocab_size, vocab_size, 600, 2)
 loss = nn.CrossEntropyLoss()
 optimizer = torch.optim.Adam(model.parameters())
 
@@ -137,4 +132,4 @@ for epoch in range(epochs):
         count += 1
 
 # Output
-print(sample(model, 200))
+print(sample(model, 100))
